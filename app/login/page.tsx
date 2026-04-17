@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Loader2, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
@@ -34,15 +34,8 @@ function LoginForm() {
     senha: "",
   });
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [hasCaptchaInteraction, setHasCaptchaInteraction] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    setRecaptchaToken(null);
-    setHasCaptchaInteraction(false);
-    recaptchaRef.current?.reset();
-  }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -57,7 +50,7 @@ function LoginForm() {
     event.preventDefault();
     setErrorMessage(null);
 
-    if (!hasCaptchaInteraction || !recaptchaToken) {
+    if (!recaptchaToken) {
       setErrorMessage("Marque o reCAPTCHA antes de continuar.");
       return;
     }
@@ -76,7 +69,6 @@ function LoginForm() {
     } catch (error) {
       recaptchaRef.current?.reset();
       setRecaptchaToken(null);
-      setHasCaptchaInteraction(false);
       setErrorMessage(
         error instanceof Error ? error.message : "Não foi possível concluir o login."
       );
@@ -138,10 +130,7 @@ function LoginForm() {
             />
           </div>
 
-          <div
-            className="rounded-2xl border border-[#E8DDD3] bg-white p-3 shadow-sm"
-            onClickCapture={() => setHasCaptchaInteraction(true)}
-          >
+          <div className="rounded-2xl border border-[#E8DDD3] bg-white p-3 shadow-sm">
             <ReCAPTCHA
               ref={recaptchaRef}
               sitekey={recaptchaSiteKey ?? ""}
@@ -152,17 +141,14 @@ function LoginForm() {
                   setErrorMessage(null);
                 }
               }}
-              onExpired={() => {
-                setRecaptchaToken(null);
-                setHasCaptchaInteraction(false);
-              }}
+              onExpired={() => setRecaptchaToken(null)}
             />
           </div>
 
           <Button
             type="submit"
             className="h-12 w-full rounded-full bg-[var(--primary)] text-white shadow-[0_18px_40px_rgba(108,71,50,0.22)] hover:bg-[var(--primary-dark)]"
-            disabled={isSubmitting || !hasCaptchaInteraction || !recaptchaToken}
+            disabled={isSubmitting || !recaptchaToken}
           >
             {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <LockKeyhole className="size-4" />}
             {isSubmitting ? "Validando acesso..." : "Entrar"}
